@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Disaster Response Incident Triage Dashboard | EOC</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Top Navigation & Ops Command Bar -->
+  <header class="ops-header" role="banner">
+    <div class="header-main">
+      <div class="brand-group">
+        <div class="radar-beacon" aria-hidden="true">
+          <span class="beacon-dot"></span>
+          <span class="beacon-ring"></span>
+        </div>
+        <div class="brand-text">
+          <div class="brand-badge-row">
+            <span class="agency-badge">DISASTER OPS CENTER</span>
+            <span class="live-pill"><span class="pulse-led"></span>LIVE QUEUE</span>
+          </div>
+          <h1 class="app-title">Incident Triage & Priority Scoring Dashboard</h1>
+          <p class="app-subtitle">Explainable Decision-Support System for Emergency Responders</p>
+        </div>
+      </div>
+
+      <div class="ops-telemetry">
+        <div class="telemetry-item">
+          <span class="telemetry-label">SYSTEM CLOCK</span>
+          <span class="telemetry-value mono" id="live-clock">--:--:-- UTC</span>
+        </div>
+        <div class="telemetry-item">
+          <span class="telemetry-label">NETWORK SIGNAL</span>
+          <button type="button" class="connectivity-pill online" id="connectivity-status-btn" title="Live status · Click to toggle Offline Simulation Mode">
+            <span class="conn-dot"></span>
+            <span id="connectivity-status-text">ONLINE</span>
+            <span class="conn-mode-tag mono" id="conn-mode-tag">LIVE</span>
+          </button>
+        </div>
+        <div class="telemetry-item">
+          <span class="telemetry-label">DISPATCH MODE</span>
+          <span class="telemetry-value active-mode">TRIAGE ACTIVE</span>
+        </div>
+        <div class="header-actions">
+          <button id="reset-demo-btn" class="btn btn-outline-danger btn-sm" title="Restore the 3 official demo incidents">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+              <path d="M3 3v5h5"/>
+            </svg>
+            Reset Demo Data
+          </button>
+          <button id="export-data-btn" class="btn btn-outline-secondary btn-sm" title="Export reports as JSON">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Export JSON
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="dashboard-layout" role="main">
+
+    <!-- KPI Summary Stat Cards -->
+    <section class="kpi-grid" aria-label="Incident Summary Statistics">
+      <div class="kpi-card kpi-total">
+        <div class="kpi-icon-wrap">
+          <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+        </div>
+        <div class="kpi-content">
+          <div class="kpi-label">TOTAL INCIDENTS</div>
+          <div class="kpi-value mono" id="kpi-total">0</div>
+          <div class="kpi-subtext">All submitted reports</div>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-critical">
+        <div class="kpi-icon-wrap alert-glow">
+          <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+        <div class="kpi-content">
+          <div class="kpi-label">CRITICAL INCIDENTS</div>
+          <div class="kpi-value mono text-critical" id="kpi-critical">0</div>
+          <div class="kpi-subtext">Score 70–100 · Immediate escalation</div>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-pending">
+        <div class="kpi-icon-wrap">
+          <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </div>
+        <div class="kpi-content">
+          <div class="kpi-label">AWAITING ACTION</div>
+          <div class="kpi-value mono text-warning" id="kpi-pending">0</div>
+          <div class="kpi-subtext">Reported or Under Review</div>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-resolved">
+        <div class="kpi-icon-wrap">
+          <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+        </div>
+        <div class="kpi-content">
+          <div class="kpi-label">RESOLVED</div>
+          <div class="kpi-value mono text-resolved" id="kpi-resolved">0</div>
+          <div class="kpi-subtext">Addressed & closed incidents</div>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-people">
+        <div class="kpi-icon-wrap">
+          <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <div class="kpi-content">
+          <div class="kpi-label">PEOPLE ENDANGERED</div>
+          <div class="kpi-value mono text-danger" id="kpi-people">0</div>
+          <div class="kpi-subtext">Reported trapped or affected</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main 2-Column Work Area -->
+    <div class="ops-workspace">
+
+      <!-- LEFT: Intake Form Column -->
+      <aside class="panel intake-panel" aria-labelledby="form-heading">
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <svg class="icon icon-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+            <h2 id="form-heading" class="panel-title">Report New Incident</h2>
+          </div>
+          <span class="badge badge-subtle">INSPECTION / DISPATCH</span>
+        </div>
+
+        <p class="panel-desc">
+          Capture field observations. The rule-based engine computes an instant explainable triage priority score.
+        </p>
+
+        <!-- Prominent Red Offline-Resilient SOS Mode -->
+        <div class="emergency-sos-card" id="emergency-sos-card">
+          <div class="sos-card-header">
+            <div class="sos-card-brand">
+              <span class="sos-radar-ping"></span>
+              <div>
+                <div class="sos-badge-tag">LIFE-THREAT DISPATCH BEACON</div>
+                <h3 class="sos-card-title">Offline Emergency SOS</h3>
+              </div>
+            </div>
+            <span class="badge badge-sos-resilient">SIGNAL-RESILIENT</span>
+          </div>
+
+          <button type="button" class="btn btn-sos-trigger btn-block" id="trigger-sos-btn" title="Create an urgent Critical dispatch incident with one tap">
+            <span class="sos-btn-flare"></span>
+            <span class="sos-btn-icon">🚨</span>
+            <div class="sos-btn-labels">
+              <span class="sos-btn-main">ONE-TAP EMERGENCY SOS</span>
+              <span class="sos-btn-sub">Instant Critical Dispatch · Auto-Queues with No Signal</span>
+            </div>
+          </button>
+
+          <!-- Honesty Note for Satellite SOS -->
+          <div class="satellite-safety-advisory">
+            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span>In areas with no signal at all, use your phone's built-in satellite emergency SOS if available.</span>
+          </div>
+        </div>
+
+        <!-- Offline SOS Queue Banner -->
+        <div class="offline-queue-banner hidden" id="offline-queue-banner">
+          <div class="offline-banner-icon-col">
+            <span class="offline-beacon-pulse"></span>
+          </div>
+          <div class="offline-banner-body">
+            <div class="offline-banner-title">
+              No signal detected — SOS queued.
+            </div>
+            <div class="offline-banner-sub">
+              It will send automatically when connection returns.
+            </div>
+            <div class="offline-queue-count-pill mono" id="pending-sos-count-pill">
+              0 SOS in Offline Buffer
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Demo Scenario Loader for Judges -->
+        <div class="demo-quick-bar" aria-label="Quick Demo Scenarios">
+          <span class="demo-quick-title">Quick Demo Scenarios:</span>
+          <div class="quick-btn-group">
+            <button type="button" class="btn-chip" id="preset-critical-btn" title="Populate an urgent building collapse report">
+              ⚠️ Critical Collapse (100 pts)
+            </button>
+            <button type="button" class="btn-chip" id="preset-flood-btn" title="Populate flash flood with trapped citizens">
+              🌊 Flash Flood (90 pts)
+            </button>
+            <button type="button" class="btn-chip" id="preset-road-btn" title="Populate blocked arterial road">
+              🚧 Blocked Road (50 pts)
+            </button>
+          </div>
+        </div>
+
+        <form id="incident-form" novalidate autocomplete="off">
+          
+          <!-- Incident Type -->
+          <div class="form-group">
+            <label for="incident-type" class="form-label">
+              Incident Type <span class="required-star" aria-hidden="true">*</span>
+            </label>
+            <div class="select-wrapper">
+              <select id="incident-type" name="type" class="form-control" required>
+                <option value="Emergency SOS">🚨 Emergency SOS</option>
+                <option value="Flood">🌊 Flood</option>
+                <option value="Fire">🔥 Fire</option>
+                <option value="Structural Damage">🏚️ Structural Damage</option>
+                <option value="Blocked Road">🚧 Blocked Road</option>
+                <option value="Other">⚠️ Other Emergency</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Location -->
+          <div class="form-group">
+            <label for="incident-location" class="form-label">
+              Location / Area Name <span class="required-star" aria-hidden="true">*</span>
+            </label>
+            <div class="input-icon-wrapper">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+              <input 
+                type="text" 
+                id="incident-location" 
+                name="location" 
+                class="form-control with-icon" 
+                placeholder="e.g., Green Street, Sector 4, Main Bridge" 
+                required
+              >
+            </div>
+            <div class="field-error" id="error-location">Location is required.</div>
+          </div>
+
+          <!-- Severity & Number of People (2 columns) -->
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="incident-severity" class="form-label">
+                Severity Level <span class="required-star" aria-hidden="true">*</span>
+              </label>
+              <div class="select-wrapper">
+                <select id="incident-severity" name="severity" class="form-control" required>
+                  <option value="High">🔴 High Severity</option>
+                  <option value="Medium">🟡 Medium Severity</option>
+                  <option value="Low">⚪ Low Severity</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="incident-affected" class="form-label">
+                People Affected / Trapped <span class="required-star" aria-hidden="true">*</span>
+              </label>
+              <div class="input-icon-wrapper">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                </svg>
+                <input 
+                  type="number" 
+                  id="incident-affected" 
+                  name="affected" 
+                  class="form-control with-icon mono" 
+                  value="0" 
+                  min="0" 
+                  max="1000" 
+                  required
+                >
+              </div>
+              <div class="field-error" id="error-affected">Must be 0 or greater.</div>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="form-group">
+            <label for="incident-description" class="form-label">
+              Description / Immediate Danger <span class="required-star" aria-hidden="true">*</span>
+            </label>
+            <textarea 
+              id="incident-description" 
+              name="description" 
+              class="form-control" 
+              rows="3" 
+              placeholder="Describe on-ground hazards, rising water, collapse signs, or trapped individuals..."
+              required
+            ></textarea>
+            <div class="field-error" id="error-description">Please enter an incident description.</div>
+          </div>
+
+          <!-- Multimodal AI Evidence (Photo / Video Analysis) -->
+          <div class="form-group media-ai-section">
+            <div class="media-header-row">
+              <label class="form-label" for="media-input">
+                <svg class="icon icon-sm icon-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>
+                Disaster Photo / Video (Multimodal AI)
+              </label>
+              <span class="badge badge-ai-cv">
+                <span class="sparkle-icon">✨</span> AI VISION ASSIST
+              </span>
+            </div>
+            
+            <p class="media-help-text">
+              Attach scene photos or video footage. The AI will scan visual hazards, detect people trapped, and automatically rate the priority.
+            </p>
+
+            <!-- Sample Media Buttons for Instant Demo -->
+            <div class="sample-media-picker">
+              <span class="sample-media-label">Quick Demo Media:</span>
+              <div class="sample-media-buttons">
+                <button type="button" class="btn-sample-media" id="sample-flood-btn" title="Load flooded rooftop rescue photo">
+                  🌊 Flood + Rooftop
+                </button>
+                <button type="button" class="btn-sample-media" id="sample-collapse-btn" title="Load collapsed building rubble photo">
+                  🏚️ Building Collapse
+                </button>
+                <button type="button" class="btn-sample-media" id="sample-road-btn" title="Load blocked highway tree obstruction">
+                  🚧 Blocked Highway
+                </button>
+                <button type="button" class="btn-sample-media" id="sample-fire-btn" title="Load active wildfire hazard photo">
+                  🔥 Wildfire Perimeter
+                </button>
+              </div>
+            </div>
+
+            <!-- Upload Dropzone -->
+            <div class="media-dropzone" id="media-dropzone" tabindex="0" role="button" aria-label="Upload disaster photo or video">
+              <input type="file" id="media-input" accept="image/*,video/*" class="media-file-input">
+              <div class="dropzone-idle" id="dropzone-idle">
+                <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                <div class="dropzone-text">
+                  <strong>Click to upload</strong> or drag & drop photo/video
+                </div>
+                <div class="dropzone-sub">Supports JPG, PNG, WebP, MP4, WebM (Auto-analyzed by AI)</div>
+              </div>
+            </div>
+
+            <!-- Media Preview & AI Detection Overlay Container -->
+            <div class="media-preview-container hidden" id="media-preview-container">
+              <div class="media-display-wrapper" id="media-display-wrapper">
+                <img id="preview-image" class="media-preview-img hidden" alt="Uploaded disaster scene preview">
+                <video id="preview-video" class="media-preview-video hidden" controls playsinline></video>
+                
+                <!-- AI Scanning Laser Beam Animation -->
+                <div class="ai-scanner-beam hidden" id="ai-scanner-beam">
+                  <div class="scanner-laser-line"></div>
+                  <div class="scanner-hud-text">
+                    <span class="scanner-pulse"></span>
+                    NEURAL VISION ANALYSIS IN PROGRESS...
+                  </div>
+                </div>
+
+                <!-- AI Computer Vision Bounding Boxes Overlay -->
+                <div class="cv-overlay-layer" id="cv-overlay-layer">
+                  <!-- Injected bounding boxes and labels -->
+                </div>
+              </div>
+
+              <!-- Media Action Bar -->
+              <div class="media-preview-controls">
+                <div class="media-meta-tag mono" id="media-file-name">scene_analysis.jpg</div>
+                <button type="button" id="remove-media-btn" class="btn-remove-media" title="Remove attached media">
+                  Remove Media
+                </button>
+              </div>
+            </div>
+
+            <!-- AI One-Click Auto-Triage Trigger Button -->
+            <div class="ai-autotriage-box">
+              <button type="button" class="btn btn-ai-autotriage btn-block" id="run-ai-triage-btn">
+                <span class="ai-btn-glow"></span>
+                <svg class="icon icon-ai" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                </svg>
+                <span>🤖 Auto-Rate Priority with AI (Text + Media)</span>
+              </button>
+
+              <!-- AI Inference Telemetry Box -->
+              <div class="ai-telemetry-result hidden" id="ai-telemetry-result">
+                <div class="ai-telemetry-header">
+                  <div class="ai-model-badge">
+                    <span class="sparkle-icon">✨</span> MULTIMODAL INFERENCE ENGINE
+                  </div>
+                  <span class="ai-confidence mono" id="ai-confidence-score">96.4% CONFIDENCE</span>
+                </div>
+                <div class="ai-telemetry-chips" id="ai-vision-chips">
+                  <!-- Visual tags injected by AI -->
+                </div>
+                <div class="ai-telemetry-narrative" id="ai-telemetry-narrative">
+                  <!-- AI explainability narrative -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Critical Hazard Toggles -->
+          <div class="toggles-box">
+            <!-- Immediate Danger to Life -->
+            <label class="toggle-card toggle-card-urgent" for="immediate-danger-toggle">
+              <input type="checkbox" id="immediate-danger-toggle" name="immediateDanger">
+              <span class="custom-checkbox"></span>
+              <div class="toggle-info">
+                <div class="toggle-label-text">
+                  <span class="danger-badge-text">CRITICAL (+50 PTS)</span>
+                  <strong>Immediate danger to life reported</strong>
+                </div>
+                <div class="toggle-sub">Civilians in active peril, flash flood cresting, fire entrapment</div>
+              </div>
+            </label>
+
+            <!-- Severe structural or electrical hazard -->
+            <label class="toggle-card" for="severe-hazard-toggle">
+              <input type="checkbox" id="severe-hazard-toggle" name="severeHazard">
+              <span class="custom-checkbox"></span>
+              <div class="toggle-info">
+                <div class="toggle-label-text">
+                  <span class="hazard-badge-text">HAZARD (+20 PTS)</span>
+                  <strong>Severe structural or electrical hazard</strong>
+                </div>
+                <div class="toggle-sub">Live power lines, wall collapse risk, ruptured gas line</div>
+              </div>
+            </label>
+          </div>
+
+          <!-- Live Score Calculation Preview Meter -->
+          <div class="score-estimator-card" id="score-preview-box">
+            <div class="estimator-header">
+              <div class="estimator-title">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="16" x2="12" y2="12"/>
+                  <line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>
+                LIVE PRIORITY ENGINE PREVIEW
+              </div>
+              <span class="preview-badge priority-badge" id="preview-priority-badge">LOW</span>
+            </div>
+
+            <div class="estimator-body">
+              <div class="estimator-score-row">
+                <div class="estimator-score-display">
+                  <span class="estimator-score-val mono" id="preview-score-val">10</span>
+                  <span class="estimator-score-denom">/ 100 PTS</span>
+                </div>
+                <div class="estimator-meter-track">
+                  <div class="estimator-meter-fill" id="preview-meter-fill" style="width: 10%;"></div>
+                </div>
+              </div>
+
+              <!-- Breakdown Pill -->
+              <div class="estimator-reasons mono" id="preview-reasons">
+                +10 low severity baseline = 10 pts
+              </div>
+
+              <!-- Urgent Human Review Warning Flag -->
+              <div class="urgent-banner hidden" id="preview-urgent-banner">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <span>URGENT — requires human review regardless of score</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-block btn-lg" id="submit-report-btn">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Submit & Triage Incident
+            </button>
+            <button type="button" class="btn btn-ghost btn-sm" id="reset-form-btn">
+              Clear Form
+            </button>
+          </div>
+
+        </form>
+      </aside>
+
+      <!-- RIGHT: Triage Queue & Incident Board Column -->
+      <section class="panel queue-panel" aria-labelledby="queue-heading">
+        
+        <!-- Queue Header with Controls -->
+        <div class="queue-header-area">
+          <div class="queue-title-row">
+            <div class="panel-title-wrap">
+              <svg class="icon icon-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7"/>
+                <rect x="14" y="3" width="7" height="7"/>
+                <rect x="14" y="14" width="7" height="7"/>
+                <rect x="3" y="14" width="7" height="7"/>
+              </svg>
+              <h2 id="queue-heading" class="panel-title">Triage Incident Queue</h2>
+              <span class="count-pill mono" id="queue-count-pill">3</span>
+            </div>
+
+            <!-- Sort By Control -->
+            <div class="sort-control-group">
+              <label for="sort-select" class="sort-label">Sort By:</label>
+              <select id="sort-select" class="form-control form-control-sm">
+                <option value="score-desc" selected>Score: Highest First (Default)</option>
+                <option value="score-asc">Score: Lowest First</option>
+                <option value="time-desc">Time: Newest First</option>
+                <option value="people-desc">People Trapped / Affected</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Search & Filter Bar -->
+          <div class="filter-toolbar">
+            
+            <!-- Search Input -->
+            <div class="search-box">
+              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input 
+                type="text" 
+                id="search-input" 
+                class="form-control search-input" 
+                placeholder="Search by ID, location, or keywords..."
+                aria-label="Search incidents"
+              >
+              <button type="button" id="clear-search-btn" class="clear-search-btn hidden" aria-label="Clear search">×</button>
+            </div>
+
+            <!-- Filter Dropdowns / Pills -->
+            <div class="filter-selectors">
+              <!-- Priority Filter -->
+              <div class="filter-item">
+                <label for="filter-priority" class="filter-label">Priority:</label>
+                <select id="filter-priority" class="form-control form-control-sm">
+                  <option value="all">All Priorities</option>
+                  <option value="Critical">🔴 Critical (70–100)</option>
+                  <option value="High">🟠 High (40–69)</option>
+                  <option value="Medium">🟡 Medium (20–39)</option>
+                  <option value="Low">⚪ Low (0–19)</option>
+                </select>
+              </div>
+
+              <!-- Status Filter -->
+              <div class="filter-item">
+                <label for="filter-status" class="filter-label">Status:</label>
+                <select id="filter-status" class="form-control form-control-sm">
+                  <option value="all">All Statuses</option>
+                  <option value="Reported">Reported</option>
+                  <option value="Under Review">Under Review</option>
+                  <option value="Resolved">Resolved</option>
+                </select>
+              </div>
+
+              <!-- Type Filter -->
+              <div class="filter-item">
+                <label for="filter-type" class="filter-label">Type:</label>
+                <select id="filter-type" class="form-control form-control-sm">
+                  <option value="all">All Types</option>
+                  <option value="Flood">Flood</option>
+                  <option value="Fire">Fire</option>
+                  <option value="Structural Damage">Structural</option>
+                  <option value="Blocked Road">Blocked Road</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scoring Legend Quick Reference -->
+          <div class="scoring-legend" aria-label="Priority Scoring Rules Legend">
+            <span class="legend-title">Priority Scale:</span>
+            <div class="legend-items">
+              <span class="legend-badge legend-critical"><strong>70–100</strong> Critical</span>
+              <span class="legend-badge legend-high"><strong>40–69</strong> High</span>
+              <span class="legend-badge legend-medium"><strong>20–39</strong> Medium</span>
+              <span class="legend-badge legend-low"><strong>0–19</strong> Low</span>
+            </div>
+            <div class="legend-formula">
+              Rules: Danger(+50) · Trapped(+30) · Hazard(+20) · &gt;5 Ppl(+10)
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Incident Cards Container -->
+        <div id="incident-list" class="incident-list-container" role="feed" aria-busy="false" aria-label="Incident Triage List">
+          <!-- Incident Cards Rendered by script.js -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="empty-state hidden">
+          <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="8" y1="12" x2="16" y2="12"/>
+          </svg>
+          <h3 class="empty-title">No Incidents Found</h3>
+          <p class="empty-desc">No reports match the selected filters or search query.</p>
+          <button id="reset-filters-btn" class="btn btn-outline-secondary btn-sm">Clear All Filters</button>
+        </div>
+
+      </section>
+    </div>
+  </main>
+
+  <!-- Notification Toast Container -->
+  <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Detail / Triage Modal -->
+  <div id="incident-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-id mono" id="modal-incident-id">#001</span>
+          <h3 id="modal-title" class="modal-title">Incident Details</h3>
+        </div>
+        <button id="modal-close-btn" class="btn-close" aria-label="Close details dialog">×</button>
+      </div>
+
+      <div class="modal-body" id="modal-body-content">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" id="modal-dismiss-btn" class="btn btn-outline-secondary">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- About / Disclaimer Footer -->
+  <footer class="ops-footer" role="contentinfo">
+    <div class="footer-container">
+      <div class="footer-col footer-about">
+        <div class="footer-heading">ABOUT THIS SYSTEM</div>
+        <p>
+          The <strong>Disaster Response Incident Triage Dashboard</strong> is an explainable decision-support tool built for emergency response command centers. It aggregates disparate field reports and prioritizes them transparently to assist incident commanders in optimizing resource allocation.
+        </p>
+      </div>
+
+      <div class="footer-col footer-rules">
+        <div class="footer-heading">EXPLAINABLE RULE-BASED SCORING ENGINE</div>
+        <p>
+          Prioritization is computed via deterministic, auditable rules (+50 immediate danger, +30 trapped/injured, +20 structural/hazard, +10 population density) — <em>not opaque machine learning or black-box algorithms</em>. Every assigned score displays its exact mathematical rationale.
+        </p>
+      </div>
+
+      <div class="footer-col footer-disclaimer">
+        <div class="footer-heading">CRITICAL SAFETY DISCLAIMER</div>
+        <p class="disclaimer-text">
+          ⚠️ <strong>Decision-Support Only:</strong> This application does not replace official emergency services (911/112/999) or human incident command authority. All field reports require ground truth verification by qualified dispatchers before emergency personnel deployment.
+        </p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>Disaster Response Incident Triage Dashboard · Built for Hackathon Demo</span>
+      <span class="mono">Local-First Architecture · No External APIs · Zero Latency</span>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
