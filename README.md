@@ -10,11 +10,7 @@ Key Features
 •⁠  ⁠Automatically prioritize emergency cases based on urgency.
 •⁠  ⁠Display a priority list for rescuers.
 •⁠  ⁠Track and manage reported incidents.
-•⁠  ⁠Help rescuers make faster decisions.
-
-Technology Used
-
-Add the programming languages and tools used in your project.
+•⁠  ⁠Help rescuers make faster decisions
 
 Objective
 
