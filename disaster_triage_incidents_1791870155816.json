@@ -1,0 +1,71 @@
+[
+  {
+    "id": "#001",
+    "type": "Flood",
+    "location": "Green Street",
+    "severity": "High",
+    "affected": 6,
+    "description": "Flooded house, Green Street, 4 people trapped, immediate danger",
+    "immediateDanger": true,
+    "severeHazard": false,
+    "status": "Reported",
+    "timestamp": 1791869068120,
+    "score": 90,
+    "priority": "Critical",
+    "priorityClass": "badge-critical",
+    "cardClass": "priority-critical",
+    "reasons": [
+      "+50 immediate danger",
+      "+30 people trapped",
+      "+10 >5 affected"
+    ],
+    "breakdownString": "+50 immediate danger, +30 people trapped, +10 >5 affected = 90 pts",
+    "isUrgent": true,
+    "recommendation": "Immediately escalate for human review and request emergency response."
+  },
+  {
+    "id": "#002",
+    "type": "Blocked Road",
+    "location": "Main Road",
+    "severity": "High",
+    "affected": 0,
+    "description": "Fallen tree, Main Road, road blocked, no injuries",
+    "immediateDanger": false,
+    "severeHazard": true,
+    "status": "Under Review",
+    "timestamp": 1791867448120,
+    "score": 50,
+    "priority": "High",
+    "priorityClass": "badge-high",
+    "cardClass": "priority-high",
+    "reasons": [
+      "+20 access blockage hazard",
+      "+30 high severity"
+    ],
+    "breakdownString": "+20 access blockage hazard, +30 high severity = 50 pts",
+    "isUrgent": false,
+    "recommendation": "Assess road access and arrange safe obstruction removal."
+  },
+  {
+    "id": "#003",
+    "type": "Flood",
+    "location": "Lake View Street",
+    "severity": "Low",
+    "affected": 0,
+    "description": "Minor water damage, Lake View Street",
+    "immediateDanger": false,
+    "severeHazard": false,
+    "status": "Reported",
+    "timestamp": 1791864448120,
+    "score": 10,
+    "priority": "Low",
+    "priorityClass": "badge-low",
+    "cardClass": "priority-low",
+    "reasons": [
+      "+10 low severity baseline"
+    ],
+    "breakdownString": "+10 low severity baseline = 10 pts",
+    "isUrgent": false,
+    "recommendation": "Record damage and arrange follow-up assessment."
+  }
+]
